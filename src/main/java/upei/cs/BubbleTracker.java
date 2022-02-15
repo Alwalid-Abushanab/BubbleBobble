@@ -23,6 +23,9 @@ import upei.cs.algs4.*;
  */
 public class BubbleTracker {
 
+    MinPQ<Player> worstPlayers = new MinPQ<>();
+    MaxPQ<Player> bestPlayers = new MaxPQ<>();
+
     /**
      * Public Constructor Don't change this
      */
@@ -31,71 +34,66 @@ public class BubbleTracker {
     }
 
 
-    //create two Priority Que, the first one is a min-PQ that will hold the best of the worst and all player that have higher rank
-    MinPQ BW = new MinPQ();
-    //the second one is a Max-PQ which will hold the worst of the best and all player with lower ranks.
-    MaxPQ WB = new MaxPQ();
-
     /**
      * Put a player with name and rank into the data structure
      * requires the player.name and player.rank are distinct
      * @param player the player being inserted into the data structure
      */
     public void put(Player player){
-        //if it is the first player
-        if(WB.isEmpty())
-            WB.insert(player);
-        else if(BW.isEmpty())//if it's the second player
+        //if it is the first player to be added
+        if(bestPlayers.isEmpty())
+            bestPlayers.insert(player);
+        else if(worstPlayers.isEmpty())//if it's the second player
         {
-            //check who has a higher rank and swap them if necessary
-            if(player.rank() < ((Player) WB.max()).rank())
+            //check if the new player has a lower rank than the previously added one, then add it to the appropriate PQ
+            if(player.rank() < (bestPlayers.max()).rank())
             {
-                BW.insert(WB.max());
-                WB.delMax();
-                WB.insert(player);
+                worstPlayers.insert(bestPlayers.max());
+                bestPlayers.delMax();
+                bestPlayers.insert(player);
             }
             else
-                BW.insert(player);
+                worstPlayers.insert(player);
         }
         else
         {
             //if the player to be added is going to make the number of players in the game odd
-            if((WB.size()+ BW.size()) % 2 == 0)
+            if((bestPlayers.size()+ worstPlayers.size()) % 2 == 0)
             {
-                //check where the new player should be added
-                if(player.rank() < ((Player) WB.max()).rank())
+                //check to which PQ the new player should be added and add it.
+                if(player.rank() < (bestPlayers.max()).rank())
                 {
-                    WB.insert(player);
+                    bestPlayers.insert(player);
                 }
-                else if(player.rank() > ((Player) BW.min()).rank())
+                else if(player.rank() > (worstPlayers.min()).rank())
                 {
-                    BW.insert(player);
-                    Player temp = (Player) BW.min();
-                    WB.insert(temp);
-                    BW.delMin();
+                    worstPlayers.insert(player);
+                    Player temp = worstPlayers.min();
+                    bestPlayers.insert(temp);
+                    worstPlayers.delMin();
                 }
                 else
                 {
-                    WB.insert(player);
+                    bestPlayers.insert(player);
                 }
             }
             else
             {
-                //check where the new player should be added when the number of players is currently odd
-                if(player.rank() > ((Player)BW.min()).rank())
+                //check where the new player should be added when the number of players is currently odd, and take a player out of a PQ and add it to the other one if necessary.
+                if(player.rank() > (worstPlayers.min()).rank())
                 {
-                    BW.insert(player);
+                    worstPlayers.insert(player);
                 }
-                else if(player.rank() < ((Player) WB.max()).rank())
+                else if(player.rank() < (bestPlayers.max()).rank())
                 {
-                    WB.insert(player);
-                    Player temp = (Player) WB.max();
-                    WB.delMax();
-                    BW.insert(temp);
+                    bestPlayers.insert(player);
+                    Player temp = bestPlayers.max();
+                    bestPlayers.delMax();
+                    worstPlayers.insert(temp);
                 }
                 else
                 {
-                    BW.insert(player);
+                    worstPlayers.insert(player);
                 }
             }
         }
@@ -115,11 +113,11 @@ public class BubbleTracker {
      */
     public String bestOfTheWorst()
     {
-        //it has access of O(1)
-        if(BW.size() < 1)
+        //it has access of O(1) to get the first element in the PQ
+        if(worstPlayers.size() < 1)
             return "";
         else
-            return ((Player)BW.min()).name();
+            return (worstPlayers.min()).name();
 
     }
 
@@ -136,10 +134,10 @@ public class BubbleTracker {
      * no such driver exists
      */
     public String worstOfTheBest() {
-        //it has access of O(1)
-        if(WB.size() < 1)
+        //it has access of O(1) to get the first element in the PQ
+        if(bestPlayers.size() < 1)
             return "";
         else
-            return ((Player)WB.max()).name();
+            return (bestPlayers.max()).name();
     }
 }
