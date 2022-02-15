@@ -359,4 +359,61 @@ class BubbleTrackerTest {
 
     }
 
+    @Nested
+    @DisplayName("big tests with 100K players")
+    class Big100KTests{
+        private BubbleTracker bubbleTracker = null;
+
+        Player[] pArr = null;
+        @BeforeEach
+        void loadData() {
+            //create a new bubble tracker before each test
+            bubbleTracker = new BubbleTracker();
+
+            Path resourceDir = Paths.get("src", "test", "resources");
+            final String DATA_FILE = resourceDir.toAbsolutePath() + "/upei/cs/data/Large100KLobby.txt";
+            DataLoader loader = null;
+            Path p = Path.of(DATA_FILE);
+            loader = new DataLoader(p);
+            pArr = loader.getAllPlayers().toArray(new Player[0]);
+        }
+
+        /**
+         * Load the data from bigLobby.txt and check results
+         */
+        @Test
+        public void big100KLobbyTestAccuracy() {
+            final long startTime = System.currentTimeMillis();
+            for (Player player : pArr) {
+                bubbleTracker.put(player);
+            }
+            final long endTime = System.currentTimeMillis();
+            System.out.println("Total execution time: " + (endTime - startTime));
+
+            System.out.println("best of worst:" + bubbleTracker.bestOfTheWorst());
+            System.out.println("worst of best:" + bubbleTracker.worstOfTheBest());
+
+            var worstOfBest = (Player) Quick.select(pArr, (pArr.length-1)/2);
+            var bestOfWorst =(Player) Quick.select(pArr, (pArr.length - 1) / 2 + 1);
+
+            assertEquals(bestOfWorst.name(),bubbleTracker.bestOfTheWorst(), "best of worst is wrong");
+            assertEquals(worstOfBest.name(), bubbleTracker.worstOfTheBest(), "worst of best is wrong");
+        }
+        /**
+         * Load the data from big100KLobby.txt and check results
+         */
+        @Test
+        public void big100KTestLobbyFastEnough() {
+            final long startTime = System.currentTimeMillis();
+            for (Player player : pArr) {
+                bubbleTracker.put(player);
+                bubbleTracker.worstOfTheBest();
+                bubbleTracker.bestOfTheWorst();
+            }
+            final long endTime = System.currentTimeMillis();
+            System.out.println("Less accurate than JUnit estimated total execution time: " + (endTime - startTime));
+        }
+
+    }
+
 }

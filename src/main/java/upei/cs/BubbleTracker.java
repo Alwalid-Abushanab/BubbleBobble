@@ -1,5 +1,7 @@
 package upei.cs;
 
+import upei.cs.algs4.*;
+
 /**
  * Class to track the two middle players:
  * 1. the lowest ranked player (best) amoung the half of players that are highest ranked (worst)
@@ -28,12 +30,75 @@ public class BubbleTracker {
 
     }
 
+
+    //create two Priority Que, the first one is a min-PQ that will hold the best of the worst and all player that have higher rank
+    MinPQ BW = new MinPQ();
+    //the second one is a Max-PQ which will hold the worst of the best and all player with lower ranks.
+    MaxPQ WB = new MaxPQ();
+
     /**
      * Put a player with name and rank into the data structure
      * requires the player.name and player.rank are distinct
      * @param player the player being inserted into the data structure
      */
     public void put(Player player){
+        //if it is the first player
+        if(WB.isEmpty())
+            WB.insert(player);
+        else if(BW.isEmpty())//if it's the second player
+        {
+            //check who has a higher rank and swap them if necessary
+            if(player.rank() < ((Player) WB.max()).rank())
+            {
+                BW.insert(WB.max());
+                WB.delMax();
+                WB.insert(player);
+            }
+            else
+                BW.insert(player);
+        }
+        else
+        {
+            //if the player to be added is going to make the number of players in the game odd
+            if((WB.size()+ BW.size()) % 2 == 0)
+            {
+                //check where the new player should be added
+                if(player.rank() < ((Player) WB.max()).rank())
+                {
+                    WB.insert(player);
+                }
+                else if(player.rank() > ((Player) BW.min()).rank())
+                {
+                    BW.insert(player);
+                    Player temp = (Player) BW.min();
+                    WB.insert(temp);
+                    BW.delMin();
+                }
+                else
+                {
+                    WB.insert(player);
+                }
+            }
+            else
+            {
+                //check where the new player should be added when the number of players is currently odd
+                if(player.rank() > ((Player)BW.min()).rank())
+                {
+                    BW.insert(player);
+                }
+                else if(player.rank() < ((Player) WB.max()).rank())
+                {
+                    WB.insert(player);
+                    Player temp = (Player) WB.max();
+                    WB.delMax();
+                    BW.insert(temp);
+                }
+                else
+                {
+                    BW.insert(player);
+                }
+            }
+        }
     }
 
     /**
@@ -48,8 +113,14 @@ public class BubbleTracker {
      * @return the best ranking player (lowest numeric score) in the bottom 50\% of player or empty string in the case their
      * is no such player
      */
-    public String bestOfTheWorst(){
+    public String bestOfTheWorst()
+    {
+        //it has access of O(1)
+        if(BW.size() < 1)
             return "";
+        else
+            return ((Player)BW.min()).name();
+
     }
 
     /**
@@ -65,6 +136,10 @@ public class BubbleTracker {
      * no such driver exists
      */
     public String worstOfTheBest() {
+        //it has access of O(1)
+        if(WB.size() < 1)
             return "";
+        else
+            return ((Player)WB.max()).name();
     }
 }
